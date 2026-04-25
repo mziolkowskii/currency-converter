@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Stage 1: format & lint staged files only (fast feedback)
+npx lint-staged
+
+# Stage 2: TypeScript type check across the whole project
+npm run type-check
+
+# Stage 3: run only tests related to staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | tr '\n' ' ')
+if [ -n "$STAGED_FILES" ]; then
+  npx jest --findRelatedTests --passWithNoTests --bail $STAGED_FILES
+fi
