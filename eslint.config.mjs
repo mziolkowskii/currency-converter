@@ -13,17 +13,7 @@ export default [
   js.configs.recommended,
   pluginReact.configs.flat.recommended,
   {
-    ignores: [
-      'node_modules/**',
-      'android/**',
-      'ios/**',
-      'build/**',
-      'dist/**',
-      '**/*.test.ts',
-      '**/*.test.tsx',
-      '**/*.spec.ts',
-      '**/*.spec.tsx',
-    ],
+    ignores: ['node_modules/**', 'android/**', 'ios/**', 'build/**', 'dist/**'],
   },
   {
     files: ['**/*.{ts,tsx}'],
@@ -153,6 +143,7 @@ export default [
     rules: {
       '@typescript-eslint/no-var-requires': 'off',
       '@typescript-eslint/no-require-imports': 'off',
+      'no-restricted-imports': 'off',
     },
   },
 ];
