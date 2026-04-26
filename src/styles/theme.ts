@@ -3,8 +3,10 @@ import { TextStyle, ViewStyle } from 'react-native';
 type Colors = {
   background: string;
   primary: string;
+  primary20: string;
   error: string;
   white: string;
+  lightGray: string;
 };
 
 type Theme = {
@@ -25,8 +27,10 @@ type Theme = {
 const colors: Colors = {
   background: '#F8F8F8',
   primary: '#0A2463',
+  primary20: 'rgba(10, 36, 99, 0.2)',
   error: '#DC0202',
   white: '#FFFFFF',
+  lightGray: '#F5F5F5',
 };
 
 const buttonStyle: ViewStyle = {

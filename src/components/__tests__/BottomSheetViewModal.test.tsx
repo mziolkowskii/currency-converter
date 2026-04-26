@@ -5,37 +5,14 @@ import {
 } from '@components/BottomSheetViewModal';
 import { BOTTOM_OFFSET } from '@constants/style';
 import type { BottomSheetModal as GorhomBottomSheetModal } from '@gorhom/bottom-sheet';
-import { act, render, renderHook, screen } from '@testing-library/react-native';
-import { ComponentProps, ComponentType, ReactNode, RefObject, createRef } from 'react';
-import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
-import type { SharedValue } from 'react-native-reanimated';
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react-native';
+import { createRef } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-jest.mock('react-native-reanimated', () => ({
-  __esModule: true,
-  default: { createAnimatedComponent: (Component: ComponentType) => Component },
-  interpolate: () => 0,
-  useAnimatedProps: (fn: () => unknown) => fn(),
-}));
 
 jest.mock('expo-blur', () => {
   const { View } = require('react-native');
   return { BlurView: View };
-});
-
-jest.mock('@gorhom/bottom-sheet', () => {
-  const { forwardRef } = require('react') as typeof import('react');
-  const { View } = require('react-native') as typeof import('react-native');
-  return {
-    BottomSheetModal: forwardRef<GorhomBottomSheetModal, { children: ReactNode }>(({ children }, ref) => (
-      <View ref={ref as unknown as RefObject<View>}>{children}</View>
-    )),
-    BottomSheetView: ({ children, style, ...props }: ComponentProps<typeof View>) => (
-      <View testID="bottom-sheet-view" style={style} {...props}>
-        {children}
-      </View>
-    ),
-  };
 });
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -81,54 +58,53 @@ describe('useBottomSheetModalHandlers', () => {
 });
 
 describe('BlurredModalBackdrop', () => {
-  const animatedIndex = { value: 0 } as unknown as SharedValue<number>;
-  const animatedPosition = { value: 0 } as unknown as SharedValue<number>;
+  const animatedIndex = { value: 0 } as unknown as import('react-native-reanimated').SharedValue<number>;
+  const animatedPosition = { value: 0 } as unknown as import('react-native-reanimated').SharedValue<number>;
 
-  it('calls dismiss() when pressBehavior is "close" and backdrop is pressed', () => {
+  const setup = (pressBehavior: 'close' | 'collapse' | 'none' = 'close') => {
     const mockDismiss = jest.fn();
-    const ref = { current: { dismiss: mockDismiss } } as unknown as RefObject<GorhomBottomSheetModal>;
+    const ref = {
+      current: { dismiss: mockDismiss },
+    } as unknown as React.RefObject<GorhomBottomSheetModal>;
+
     render(
       <BlurredModalBackdrop
         animatedIndex={animatedIndex}
         animatedPosition={animatedPosition}
         ref={ref}
-        pressBehavior="close"
+        pressBehavior={pressBehavior}
+        testID="backdrop-touchable"
       />,
     );
-    const touchable = screen.UNSAFE_getByType(TouchableWithoutFeedback);
-    act(() => touchable.props.onPress?.());
+
+    return { mockDismiss };
+  };
+
+  it('calls dismiss() when pressBehavior is "close" and backdrop is pressed', () => {
+    const { mockDismiss } = setup('close');
+
+    const backdrop = screen.getByTestId('backdrop-touchable');
+
+    fireEvent.press(backdrop);
+
     expect(mockDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('calls dismiss() when pressBehavior is "collapse" and backdrop is pressed', () => {
-    const mockDismiss = jest.fn();
-    const ref = { current: { dismiss: mockDismiss } } as unknown as RefObject<GorhomBottomSheetModal>;
-    render(
-      <BlurredModalBackdrop
-        animatedIndex={animatedIndex}
-        animatedPosition={animatedPosition}
-        ref={ref}
-        pressBehavior="collapse"
-      />,
-    );
-    const touchable = screen.UNSAFE_getByType(TouchableWithoutFeedback);
-    act(() => touchable.props.onPress?.());
+    const { mockDismiss } = setup('collapse');
+
+    const backdrop = screen.getByTestId('backdrop-touchable');
+    fireEvent.press(backdrop);
+
     expect(mockDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('does not call dismiss() when pressBehavior is "none" and backdrop is pressed', () => {
-    const mockDismiss = jest.fn();
-    const ref = { current: { dismiss: mockDismiss } } as unknown as RefObject<GorhomBottomSheetModal>;
-    render(
-      <BlurredModalBackdrop
-        animatedIndex={animatedIndex}
-        animatedPosition={animatedPosition}
-        ref={ref}
-        pressBehavior="none"
-      />,
-    );
-    const touchable = screen.UNSAFE_getByType(TouchableWithoutFeedback);
-    act(() => touchable.props.onPress?.());
+    const { mockDismiss } = setup('none');
+
+    const backdrop = screen.getByTestId('backdrop-touchable');
+    fireEvent.press(backdrop);
+
     expect(mockDismiss).not.toHaveBeenCalled();
   });
 });
@@ -147,7 +123,7 @@ describe('BottomSheetViewModal', () => {
   it('applies the bottomOffset prop as paddingBottom', () => {
     const ref = createRef<GorhomBottomSheetModal>();
     render(
-      <BottomSheetViewModal ref={ref} bottomOffset={40}>
+      <BottomSheetViewModal ref={ref} bottomOffset={40} isScrollable>
         <View />
       </BottomSheetViewModal>,
     );
@@ -159,7 +135,7 @@ describe('BottomSheetViewModal', () => {
     mockUseSafeAreaInsets.mockReturnValue({ bottom: 0, top: 0, left: 0, right: 0 });
     const ref = createRef<GorhomBottomSheetModal>();
     render(
-      <BottomSheetViewModal ref={ref}>
+      <BottomSheetViewModal ref={ref} isScrollable>
         <View />
       </BottomSheetViewModal>,
     );
@@ -171,11 +147,44 @@ describe('BottomSheetViewModal', () => {
     mockUseSafeAreaInsets.mockReturnValue({ bottom: 50, top: 0, left: 0, right: 0 });
     const ref = createRef<GorhomBottomSheetModal>();
     render(
-      <BottomSheetViewModal ref={ref}>
+      <BottomSheetViewModal ref={ref} isScrollable>
         <View />
       </BottomSheetViewModal>,
     );
     const flatStyle = StyleSheet.flatten(screen.getByTestId('bottom-sheet-view').props.style);
     expect(flatStyle).toMatchObject({ paddingBottom: 50 });
+  });
+
+  it('wraps children in BottomSheetView when isScrollable is true', () => {
+    const ref = createRef<GorhomBottomSheetModal>();
+    render(
+      <BottomSheetViewModal ref={ref} isScrollable>
+        <View testID="child" />
+      </BottomSheetViewModal>,
+    );
+    expect(screen.getByTestId('bottom-sheet-view')).toBeTruthy();
+    expect(screen.getByTestId('child')).toBeTruthy();
+  });
+
+  it('renders children directly without BottomSheetView when isScrollable is false', () => {
+    const ref = createRef<GorhomBottomSheetModal>();
+    render(
+      <BottomSheetViewModal ref={ref} isScrollable={false}>
+        <View testID="child" />
+      </BottomSheetViewModal>,
+    );
+    expect(screen.queryByTestId('bottom-sheet-view')).toBeNull();
+    expect(screen.getByTestId('child')).toBeTruthy();
+  });
+
+  it('renders children directly without BottomSheetView when isScrollable is not provided', () => {
+    const ref = createRef<GorhomBottomSheetModal>();
+    render(
+      <BottomSheetViewModal ref={ref}>
+        <View testID="child" />
+      </BottomSheetViewModal>,
+    );
+    expect(screen.queryByTestId('bottom-sheet-view')).toBeNull();
+    expect(screen.getByTestId('child')).toBeTruthy();
   });
 });

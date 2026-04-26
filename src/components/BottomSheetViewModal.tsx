@@ -20,11 +20,13 @@ type BottomSheetViewModalProps = BottomSheetModalProps & {
   ref: RefObject<GorhomBottomSheetModal | null>;
   bottomOffset?: number;
   pressBehavior?: BackdropPressBehavior;
+  isScrollable?: boolean;
 };
 
 type BottomSheetCustomBackdropProps = BottomSheetBackdropProps & {
   ref: RefObject<GorhomBottomSheetModal | null>;
   pressBehavior: BackdropPressBehavior;
+  testID?: string;
   onBackdropPress?: () => void;
 };
 
@@ -43,7 +45,7 @@ export const useBottomSheetModalHandlers = () => {
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 export const BlurredModalBackdrop = memo(
-  ({ animatedIndex, pressBehavior = 'none', ref }: BottomSheetCustomBackdropProps) => {
+  ({ animatedIndex, pressBehavior = 'none', ref, testID }: BottomSheetCustomBackdropProps) => {
     const animatedProps = useAnimatedProps(() => {
       const intensity = interpolate(animatedIndex.value, [-1, 0], [0, 30], {
         extrapolateRight: 'clamp',
@@ -68,6 +70,7 @@ export const BlurredModalBackdrop = memo(
           animatedProps={animatedProps}
           blurMethod="dimezisBlurView"
           tint="dark"
+          testID={testID}
         />
       </TouchableWithoutFeedback>
     );
@@ -81,6 +84,7 @@ export const BottomSheetViewModal = ({
   ref,
   pressBehavior = 'none',
   bottomOffset,
+  isScrollable,
   ...props
 }: BottomSheetViewModalProps) => {
   const { bottom } = useSafeAreaInsets();
@@ -102,13 +106,17 @@ export const BottomSheetViewModal = ({
       handleComponent={null}
       backgroundStyle={styles.background}
     >
-      <BottomSheetView
-        style={containerStyle}
-        onStartShouldSetResponder={handleStartShouldSetResponder}
-        onResponderRelease={handleResponderRelease}
-      >
-        {children}
-      </BottomSheetView>
+      {isScrollable ? (
+        <BottomSheetView
+          style={containerStyle}
+          onStartShouldSetResponder={handleStartShouldSetResponder}
+          onResponderRelease={handleResponderRelease}
+        >
+          {children}
+        </BottomSheetView>
+      ) : (
+        children
+      )}
     </GorhomBottomSheetModal>
   );
 };
