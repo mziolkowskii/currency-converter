@@ -7,7 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
-import '../src/i18n/config';
+import '../i18n/config';
 
 SplashScreen.preventAutoHideAsync();
 
