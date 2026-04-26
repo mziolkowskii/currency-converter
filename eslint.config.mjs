@@ -46,7 +46,7 @@ export default [
       '@typescript-eslint/no-require-imports': [
         'warn',
         {
-          allow: ['@assets/.*'],
+          allow: ['@appAssets/.*'],
         },
       ],
     },

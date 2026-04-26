@@ -17,10 +17,10 @@ type SetupProviderProps = {
 
 const SetupProvider = ({ children }: SetupProviderProps) => {
   const [loaded, error] = useFonts({
-    'RethinkSans-Regular': require('@assets/fonts/RethinkSans-Regular.ttf'),
-    'RethinkSans-Bold': require('@assets/fonts/RethinkSans-Bold.ttf'),
-    'RethinkSans-SemiBold': require('@assets/fonts/RethinkSans-SemiBold.ttf'),
-    'RethinkSans-Medium': require('@assets/fonts/RethinkSans-Medium.ttf'),
+    'RethinkSans-Regular': require('@appAssets/fonts/RethinkSans-Regular.ttf'),
+    'RethinkSans-Bold': require('@appAssets/fonts/RethinkSans-Bold.ttf'),
+    'RethinkSans-SemiBold': require('@appAssets/fonts/RethinkSans-SemiBold.ttf'),
+    'RethinkSans-Medium': require('@appAssets/fonts/RethinkSans-Medium.ttf'),
   });
 
   const [appReady, setAppReady] = useState(false);

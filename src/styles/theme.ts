@@ -3,7 +3,6 @@ import { TextStyle, ViewStyle } from 'react-native';
 type Colors = {
   background: string;
   primary: string;
-  secondary: string;
   error: string;
   white: string;
 };
@@ -16,6 +15,7 @@ type Theme = {
   typography: {
     h1: TextStyle;
     text: TextStyle;
+    textSmall: TextStyle;
     label: TextStyle;
     button: TextStyle;
     placeholder: TextStyle;
@@ -25,7 +25,6 @@ type Theme = {
 const colors: Colors = {
   background: '#F8F8F8',
   primary: '#0A2463',
-  secondary: '#3083DC',
   error: '#DC0202',
   white: '#FFFFFF',
 };
@@ -57,6 +56,11 @@ export const theme: Theme = {
       fontFamily: 'RethinkSans-Regular',
       color: colors.primary,
     },
+    textSmall: {
+      fontSize: 12,
+      fontFamily: 'RethinkSans-Regular',
+      color: colors.primary,
+    },
     label: {
       fontSize: 14,
       fontFamily: 'RethinkSans-SemiBold',
@@ -68,7 +72,10 @@ export const theme: Theme = {
       color: colors.white,
     },
     placeholder: {
-      // TBD
+      fontSize: 16,
+      fontFamily: 'RethinkSans-Regular',
+      color: colors.primary,
+      opacity: 0.6,
     },
   },
 };

@@ -1,14 +1,5 @@
-import { Screen } from '@components/Screen';
-import { useSetupContext } from '@context/SetupContext';
-import { View } from 'react-native';
+import { HomeScreen } from '@screens/HomeScreen';
 
-const HomeScreenRoute = () => {
-  const { onLayoutRootView } = useSetupContext();
-  return (
-    <Screen onLayout={onLayoutRootView}>
-      <View />
-    </Screen>
-  );
-};
+const HomeScreenRoute = () => <HomeScreen />;
 
 export default HomeScreenRoute;
