@@ -14,6 +14,7 @@ import { useDebounce } from '@hooks/useDebounce';
 import { CurrencyRecord } from '@services/api/converter/types';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { theme } from '@styles/theme';
+import { TFunction } from 'i18next';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -35,10 +36,58 @@ const Dropdown = memo(({ label, onPress, testID }: DropdownProps) => (
 
 Dropdown.displayName = 'Dropdown';
 
+type CurrencyListItemProps = {
+  item: CurrencyRecord;
+  isSelected: boolean;
+  onPress: (code: string) => void;
+};
+
+const CurrencyListItem = memo(({ item, isSelected, onPress }: CurrencyListItemProps) => {
+  const buttonStyles = useMemo(() => [styles.item, isSelected && styles.itemSelected], [isSelected]);
+
+  const handlePress = useCallback(() => {
+    onPress(item.short_code);
+  }, [item.short_code, onPress]);
+
+  return (
+    <Pressable testID={`currency-item-${item.short_code}`} style={buttonStyles} onPress={handlePress}>
+      <Text variant="text">{item.name}</Text>
+    </Pressable>
+  );
+});
+
+CurrencyListItem.displayName = 'CurrencyListItem';
+
 const SKELETON_HEIGHT = 56;
 const SNAP_POINTS = ['80%'];
 
-export const CurrencyConverter = () => {
+const normalizeDecimalSeparator = (text: string) => text.replace(/,/g, '.');
+
+const createSchema = (t: TFunction<'home'>) =>
+  z.object({
+    valueFrom: z
+      .string()
+      .transform(val => val.trim().replace(/,/g, '.'))
+      .pipe(
+        z
+          .string()
+          .min(1, { message: t('form.validation.value') })
+          .regex(/^\d+(\.\d+)?$/, { message: t('form.validation.invalidValue') }),
+      ),
+    valueTo: z
+      .string()
+      .transform(val => val.trim().replace(/,/g, '.'))
+      .pipe(
+        z
+          .string()
+          .min(1, { message: t('form.validation.value') })
+          .regex(/^\d+(\.\d+)?$/, { message: t('form.validation.invalidValue') }),
+      ),
+  });
+
+type CurrencyConverterFormValues = z.infer<ReturnType<typeof createSchema>>;
+
+export const CurrencyConverter = memo(() => {
   const { t } = useTranslation('home');
   const bottomOffset = useBottomOffset();
   const { bottomSheetModalRef, handleOpenBottomSheetModal, handleCloseBottomSheetModal } =
@@ -64,32 +113,8 @@ export const CurrencyConverter = () => {
 
   const activeSelectedCode = dropdownMode === 'from' ? currencyFrom : currencyTo;
 
-  const schema = useMemo(
-    () =>
-      z.object({
-        valueFrom: z
-          .string()
-          .transform(val => val.trim().replace(/,/g, '.'))
-          .pipe(
-            z
-              .string()
-              .min(1, { message: t('form.validation.value') })
-              .regex(/^\d+(\.\d+)?$/, { message: t('form.validation.invalidValue') }),
-          ),
-        valueTo: z
-          .string()
-          .transform(val => val.trim().replace(/,/g, '.'))
-          .pipe(
-            z
-              .string()
-              .min(1, { message: t('form.validation.value') })
-              .regex(/^\d+(\.\d+)?$/, { message: t('form.validation.invalidValue') }),
-          ),
-      }),
-    [t],
-  );
+  const schema = useMemo(() => createSchema(t), [t]);
 
-  type CurrencyConverterFormValues = z.infer<typeof schema>;
   const {
     control,
     reset,
@@ -128,10 +153,6 @@ export const CurrencyConverter = () => {
     reset({ valueFrom: '', valueTo: '' });
   }, [reset]);
 
-  const handleMapTextInputChange = useCallback((text: string) => {
-    return text.replace(/,/g, '.');
-  }, []);
-
   const handleFocusFrom = useCallback(() => setActiveField('from'), []);
   const handleFocusTo = useCallback(() => setActiveField('to'), []);
 
@@ -159,27 +180,27 @@ export const CurrencyConverter = () => {
 
   const keyExtractor = useCallback((item: CurrencyRecord) => item.short_code, []);
 
-  const renderItem = useCallback(
-    ({ item }: { item: CurrencyRecord }) => {
-      const isSelected = item.short_code === activeSelectedCode;
-      return (
-        <Pressable
-          testID={`currency-item-${item.short_code}`}
-          style={[styles.item, isSelected && styles.itemSelected]}
-          onPress={() => {
-            if (dropdownMode === 'from') {
-              setCurrencyFrom(item.short_code);
-            } else {
-              setCurrencyTo(item.short_code);
-            }
-            handleCloseBottomSheetModal();
-          }}
-        >
-          <Text variant="text">{item.name}</Text>
-        </Pressable>
-      );
+  const handleSelectCurrency = useCallback(
+    (code: string) => {
+      if (dropdownMode === 'from') {
+        setCurrencyFrom(code);
+      } else {
+        setCurrencyTo(code);
+      }
+      handleCloseBottomSheetModal();
     },
-    [activeSelectedCode, dropdownMode, handleCloseBottomSheetModal],
+    [dropdownMode, handleCloseBottomSheetModal],
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: CurrencyRecord }) => (
+      <CurrencyListItem
+        item={item}
+        isSelected={item.short_code === activeSelectedCode}
+        onPress={handleSelectCurrency}
+      />
+    ),
+    [activeSelectedCode, handleSelectCurrency],
   );
 
   if (currenciesError) {
@@ -209,7 +230,7 @@ export const CurrencyConverter = () => {
             variant="textWithDropdown"
             placeholder={t('form.valuePlaceholder')}
             keyboardType="numeric"
-            mapTextInputChange={handleMapTextInputChange}
+            mapTextInputChange={normalizeDecimalSeparator}
             onFocus={handleFocusFrom}
             errorLabel={errors.valueFrom?.message}
             right={
@@ -226,7 +247,7 @@ export const CurrencyConverter = () => {
             variant="textWithDropdown"
             placeholder={t('form.valuePlaceholder')}
             keyboardType="numeric"
-            mapTextInputChange={handleMapTextInputChange}
+            mapTextInputChange={normalizeDecimalSeparator}
             onFocus={handleFocusTo}
             errorLabel={errors.valueTo?.message}
             right={
@@ -262,7 +283,9 @@ export const CurrencyConverter = () => {
       </BottomSheetViewModal>
     </>
   );
-};
+});
+
+CurrencyConverter.displayName = 'CurrencyConverter';
 
 const styles = StyleSheet.create({
   container: {
