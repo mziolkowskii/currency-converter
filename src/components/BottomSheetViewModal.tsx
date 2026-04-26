@@ -65,13 +65,7 @@ export const BlurredModalBackdrop = memo(
 
     return (
       <TouchableWithoutFeedback onPress={handlePress}>
-        <AnimatedBlurView
-          style={StyleSheet.absoluteFill}
-          animatedProps={animatedProps}
-          blurMethod="dimezisBlurView"
-          tint="dark"
-          testID={testID}
-        />
+        <AnimatedBlurView style={StyleSheet.absoluteFill} animatedProps={animatedProps} tint="dark" testID={testID} />
       </TouchableWithoutFeedback>
     );
   },
