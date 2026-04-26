@@ -85,10 +85,16 @@ export const BottomSheetViewModal = ({
   const { handleStartShouldSetResponder, handleResponderRelease } = useKeyboard();
 
   const defaultBottomOffset = bottom > BOTTOM_OFFSET ? bottom : BOTTOM_OFFSET;
-  const containerStyle = [styles.container, { paddingBottom: bottomOffset ?? defaultBottomOffset }];
+
+  const containerStyle = useMemo(
+    () => [styles.container, { paddingBottom: bottomOffset ?? defaultBottomOffset }],
+    [bottomOffset, defaultBottomOffset],
+  );
 
   const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => <BlurredModalBackdrop {...props} ref={ref} pressBehavior={pressBehavior} />,
+    (backdropProps: BottomSheetBackdropProps) => (
+      <BlurredModalBackdrop {...backdropProps} ref={ref} pressBehavior={pressBehavior} />
+    ),
     [pressBehavior, ref],
   );
 

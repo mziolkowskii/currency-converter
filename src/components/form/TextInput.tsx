@@ -1,4 +1,5 @@
 import { theme } from '@styles/theme';
+import { memo, useMemo } from 'react';
 import {
   // eslint-disable-next-line no-restricted-imports
   TextInput as RNTextInput,
@@ -15,9 +16,12 @@ export type TextInputProps = RNTextInputProps & {
   containerStyle?: StyleProp<ViewStyle>;
 };
 
-export const TextInput = ({ error, right, ...props }: TextInputProps) => {
-  const containerStyle = [styles.inputContainer, error && styles.errorContainer, props.containerStyle];
-  const inputStyle = [styles.input, theme.typography.text, props.style];
+export const TextInput = memo(({ error, right, ...props }: TextInputProps) => {
+  const containerStyle = useMemo(
+    () => [styles.inputContainer, error && styles.errorContainer, props.containerStyle],
+    [error, props.containerStyle],
+  );
+  const inputStyle = useMemo(() => [styles.input, theme.typography.text, props.style], [props.style]);
 
   return (
     <View style={containerStyle}>
@@ -25,7 +29,9 @@ export const TextInput = ({ error, right, ...props }: TextInputProps) => {
       {right}
     </View>
   );
-};
+});
+
+TextInput.displayName = 'TextInput';
 
 const styles = StyleSheet.create({
   input: {
