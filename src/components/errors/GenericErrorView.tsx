@@ -13,7 +13,7 @@ export const GenericErrorView = memo(({ refetch, error }: GenericErrorViewProps)
   const { t } = useTranslation(['errors', 'common']);
   return (
     <View style={styles.errorContainer}>
-      <Text variant="text">{error || t('generic')}</Text>
+      <Text variant="text">{error ?? t('generic')}</Text>
       {refetch ? <Button label={t('common:retry')} variant="primary" onPress={refetch} /> : null}
     </View>
   );

@@ -96,11 +96,11 @@ export class ErrorBoundary extends Component<Props, State> {
     const lines = componentStack?.split('\n') || [];
     const firstLine = lines[1] || lines[0] || '';
 
-    const componentMatch = firstLine.match(/in\s+(\w+)/) || [];
-    const component = componentMatch ? componentMatch[1] : 'Unknown';
+    const componentMatch = firstLine.match(/in\s+(\w+)/);
+    const component = componentMatch?.[1] ?? 'Unknown';
 
-    const fileMatch = firstLine.match(/\(([^)]+)\)/) || [];
-    const file = fileMatch ? fileMatch[1] : 'Unknown';
+    const fileMatch = firstLine.match(/\(([^)]+)\)/);
+    const file = fileMatch?.[1] ?? 'Unknown';
 
     const directory = file !== 'Unknown' ? file.split('/').slice(0, -1).join('/') : 'Unknown';
 
