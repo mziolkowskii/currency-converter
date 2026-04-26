@@ -8,16 +8,18 @@ type ErrorResponseData = {
   error?: string;
 };
 
+const { EXPO_PUBLIC_API_URL, EXPO_PUBLIC_API_KEY } = validateEnvs();
+
 const api = axios.create({
-  baseURL: validateEnvs().EXPO_PUBLIC_API_URL,
+  baseURL: EXPO_PUBLIC_API_URL,
   timeout: 10000,
 });
 
-const requestInterceptor = async (config: InternalAxiosRequestConfig) => {
+const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   if (config.method?.toLowerCase() === 'get') {
     config.params = {
       ...config.params,
-      api_key: validateEnvs().EXPO_PUBLIC_API_KEY,
+      api_key: EXPO_PUBLIC_API_KEY,
     };
   }
   return config;
