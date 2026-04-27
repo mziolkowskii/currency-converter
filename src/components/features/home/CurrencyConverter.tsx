@@ -166,12 +166,12 @@ export const CurrencyConverter = memo(() => {
     handleOpenBottomSheetModal();
   }, [handleOpenBottomSheetModal]);
 
-  const handleAnimate = useCallback(
-    (_fromIndex: number, toIndex: number) => {
-      if (toIndex === 0 && activeSelectedCode) {
-        const index = currencies.findIndex(c => c.short_code === activeSelectedCode);
-        if (index !== -1) {
-          flashListRef.current?.scrollToIndex({ index, animated: true });
+  const handleChange = useCallback(
+    (index: number) => {
+      if (index === 0 && activeSelectedCode) {
+        const selectedIndex = currencies.findIndex(c => c.short_code === activeSelectedCode);
+        if (selectedIndex !== -1) {
+          flashListRef.current?.scrollToIndex({ index: selectedIndex, animated: true });
         }
       }
     },
@@ -269,7 +269,8 @@ export const CurrencyConverter = memo(() => {
         snapPoints={SNAP_POINTS}
         enableDynamicSizing={false}
         style={styles.modal}
-        onAnimate={handleAnimate}
+        onChange={handleChange}
+        isScrollable
       >
         <FlashList
           ref={flashListRef}

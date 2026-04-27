@@ -123,7 +123,7 @@ describe('BottomSheetViewModal', () => {
   it('applies the bottomOffset prop as paddingBottom', () => {
     const ref = createRef<GorhomBottomSheetModal>();
     render(
-      <BottomSheetViewModal ref={ref} bottomOffset={40} isScrollable>
+      <BottomSheetViewModal ref={ref} bottomOffset={40}>
         <View />
       </BottomSheetViewModal>,
     );
@@ -135,7 +135,7 @@ describe('BottomSheetViewModal', () => {
     mockUseSafeAreaInsets.mockReturnValue({ bottom: 0, top: 0, left: 0, right: 0 });
     const ref = createRef<GorhomBottomSheetModal>();
     render(
-      <BottomSheetViewModal ref={ref} isScrollable>
+      <BottomSheetViewModal ref={ref}>
         <View />
       </BottomSheetViewModal>,
     );
@@ -147,7 +147,7 @@ describe('BottomSheetViewModal', () => {
     mockUseSafeAreaInsets.mockReturnValue({ bottom: 50, top: 0, left: 0, right: 0 });
     const ref = createRef<GorhomBottomSheetModal>();
     render(
-      <BottomSheetViewModal ref={ref} isScrollable>
+      <BottomSheetViewModal ref={ref}>
         <View />
       </BottomSheetViewModal>,
     );
@@ -155,10 +155,10 @@ describe('BottomSheetViewModal', () => {
     expect(flatStyle).toMatchObject({ paddingBottom: 50 });
   });
 
-  it('wraps children in BottomSheetView when isScrollable is true', () => {
+  it('wraps children in BottomSheetView when isScrollable is not provided', () => {
     const ref = createRef<GorhomBottomSheetModal>();
     render(
-      <BottomSheetViewModal ref={ref} isScrollable>
+      <BottomSheetViewModal ref={ref}>
         <View testID="child" />
       </BottomSheetViewModal>,
     );
@@ -166,21 +166,21 @@ describe('BottomSheetViewModal', () => {
     expect(screen.getByTestId('child')).toBeTruthy();
   });
 
-  it('renders children directly without BottomSheetView when isScrollable is false', () => {
+  it('wraps children in BottomSheetView when isScrollable is false', () => {
     const ref = createRef<GorhomBottomSheetModal>();
     render(
       <BottomSheetViewModal ref={ref} isScrollable={false}>
         <View testID="child" />
       </BottomSheetViewModal>,
     );
-    expect(screen.queryByTestId('bottom-sheet-view')).toBeNull();
+    expect(screen.getByTestId('bottom-sheet-view')).toBeTruthy();
     expect(screen.getByTestId('child')).toBeTruthy();
   });
 
-  it('renders children directly without BottomSheetView when isScrollable is not provided', () => {
+  it('renders children directly without BottomSheetView when isScrollable is true', () => {
     const ref = createRef<GorhomBottomSheetModal>();
     render(
-      <BottomSheetViewModal ref={ref}>
+      <BottomSheetViewModal ref={ref} isScrollable>
         <View testID="child" />
       </BottomSheetViewModal>,
     );

@@ -106,7 +106,7 @@ export const BottomSheetViewModal = ({
       handleComponent={null}
       backgroundStyle={styles.background}
     >
-      {isScrollable ? (
+      {!isScrollable ? (
         <BottomSheetView
           style={containerStyle}
           onStartShouldSetResponder={handleStartShouldSetResponder}
