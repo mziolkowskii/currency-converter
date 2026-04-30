@@ -11,8 +11,9 @@ import { useConvert } from '@hooks/api/converter/useConvert';
 import { useGetCurrencies } from '@hooks/api/converter/useGetCurrencies';
 import { useBottomOffset } from '@hooks/useBottomOffset';
 import { useDebounce } from '@hooks/useDebounce';
-import { CurrencyRecord } from '@services/api/converter/types';
+import { CurrencyConversionRecord, CurrencyRecord } from '@services/api/converter/types';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { useConversionHistorySlice } from '@store/store';
 import { theme } from '@styles/theme';
 import { TFunction } from 'i18next';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -99,6 +100,7 @@ export const CurrencyConverter = memo(() => {
     error: currenciesError,
     refetch: refetchCurrencies,
   } = useGetCurrencies();
+  const { history, addHistoryItem } = useConversionHistorySlice();
 
   const [dropdownMode, setDropdownMode] = useState<'from' | 'to'>('from');
   const [activeField, setActiveField] = useState<'from' | 'to'>('from');
@@ -135,7 +137,14 @@ export const CurrencyConverter = memo(() => {
       ? { from: currencyFrom, to: currencyTo, amount: Number(debouncedValueFrom) }
       : { from: currencyTo, to: currencyFrom, amount: Number(debouncedValueTo) };
 
-  const { data: convertData } = useConvert(convertParams);
+  const { data: convertData, isSuccess } = useConvert(convertParams);
+
+  // TODO: Improve it with better useQuery investigation
+  useEffect(() => {
+    if (convertData && isSuccess) {
+      addHistoryItem(convertData);
+    }
+  }, [convertData, isSuccess, addHistoryItem]);
 
   useEffect(() => {
     if (!convertData) return;
@@ -203,6 +212,24 @@ export const CurrencyConverter = memo(() => {
     [activeSelectedCode, handleSelectCurrency],
   );
 
+  const renderHistoryItem = useCallback(
+    ({ item }: { item: CurrencyConversionRecord }) => (
+      <View style={styles.historyItemContainer}>
+        <View style={styles.historyItem}>
+          <Text variant="label">{item.from}</Text>
+          <Text variant="text">{item.valueFrom}</Text>
+        </View>
+        <View>
+          <Text variant="label">{item.to}</Text>
+          <Text variant="text">{item.value}</Text>
+        </View>
+      </View>
+    ),
+    [],
+  );
+
+  const historyItemKeyExtractor = useCallback((item: CurrencyConversionRecord) => `history-${item.timestamp}`, []);
+
   if (currenciesError) {
     return (
       <View style={styles.errorContainer}>
@@ -224,43 +251,48 @@ export const CurrencyConverter = memo(() => {
     <>
       <View style={styles.container}>
         <View style={styles.formContainer}>
-          <FormField
-            control={control}
-            name="valueFrom"
-            variant="textWithDropdown"
-            placeholder={t('form.valuePlaceholder')}
-            keyboardType="numeric"
-            mapTextInputChange={normalizeDecimalSeparator}
-            onFocus={handleFocusFrom}
-            errorLabel={errors.valueFrom?.message}
-            right={
-              <Dropdown
-                testID="dropdown-from"
-                label={currencyFrom ?? undefined}
-                onPress={handleOpenCurrencyFromBottomSheetModal}
-              />
-            }
-          />
-          <FormField
-            control={control}
-            name="valueTo"
-            variant="textWithDropdown"
-            placeholder={t('form.valuePlaceholder')}
-            keyboardType="numeric"
-            mapTextInputChange={normalizeDecimalSeparator}
-            onFocus={handleFocusTo}
-            errorLabel={errors.valueTo?.message}
-            right={
-              <Dropdown
-                testID="dropdown-to"
-                label={currencyTo ?? undefined}
-                onPress={handleOpenCurrencyToBottomSheetModal}
-              />
-            }
-          />
-        </View>
-        <View style={footerStyle}>
-          <Button label={t('resetForm')} onPress={handleResetForm} variant="primary" />
+          <View style={styles.formInputContainer}>
+            <FormField
+              control={control}
+              name="valueFrom"
+              variant="textWithDropdown"
+              placeholder={t('form.valuePlaceholder')}
+              keyboardType="numeric"
+              mapTextInputChange={normalizeDecimalSeparator}
+              onFocus={handleFocusFrom}
+              errorLabel={errors.valueFrom?.message}
+              right={
+                <Dropdown
+                  testID="dropdown-from"
+                  label={currencyFrom ?? undefined}
+                  onPress={handleOpenCurrencyFromBottomSheetModal}
+                />
+              }
+            />
+            <FormField
+              control={control}
+              name="valueTo"
+              variant="textWithDropdown"
+              placeholder={t('form.valuePlaceholder')}
+              keyboardType="numeric"
+              mapTextInputChange={normalizeDecimalSeparator}
+              onFocus={handleFocusTo}
+              errorLabel={errors.valueTo?.message}
+              right={
+                <Dropdown
+                  testID="dropdown-to"
+                  label={currencyTo ?? undefined}
+                  onPress={handleOpenCurrencyToBottomSheetModal}
+                />
+              }
+            />
+          </View>
+          <View>
+            <FlashList data={history} renderItem={renderHistoryItem} keyExtractor={historyItemKeyExtractor} />
+          </View>
+          <View style={footerStyle}>
+            <Button label={t('resetForm')} onPress={handleResetForm} variant="primary" />
+          </View>
         </View>
       </View>
       <BottomSheetViewModal
@@ -295,6 +327,10 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     flex: 1,
+    gap: 40,
+  },
+  formInputContainer: {
+    flex: 1,
     gap: 16,
   },
   dropdown: {
@@ -322,5 +358,14 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
+  },
+  historyItemContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  historyItem: {
+    gap: 12,
   },
 });

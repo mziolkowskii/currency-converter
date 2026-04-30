@@ -15,7 +15,7 @@ export const useConvert = ({ amount, from, to }: ConvertCurrencyProps) =>
   useQuery({
     queryKey: [CURRENCY_CONVERSION_QUERY_KEY, from, to, amount],
     queryFn: async () => api.get<CurrencyConversionRecord>('/convert', { params: { amount, from, to } }),
-    select: data => data.data,
+    select: data => ({ ...data.data, valueFrom: amount }),
     staleTime: 5 * ONE_MINUTE,
     enabled: !!from && !!to && !!amount,
   });

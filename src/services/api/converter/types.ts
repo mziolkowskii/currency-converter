@@ -18,4 +18,5 @@ export type CurrencyConversionRecord = {
   to: string;
   amount: number;
   value: number;
+  valueFrom: number;
 };
